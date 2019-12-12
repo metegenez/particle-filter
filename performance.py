@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 measurement_sigmas = list(np.sqrt(np.linspace(0.02, 5, 10)))
 Ns = [1000,5000, 10000, 15000, 20000]
 process_noise = [np.sqrt(0.75)]
-trials = list(product(measurement_sigmas, process_noise, Ns, list(range(100))))
-performance_to_sigma = pickle.load(open(f'results_for_sigmas.pickle', "rb"))
+trials = list(product(measurement_sigmas, process_noise, Ns, list(range(300))))
+performance_to_sigma = pickle.load(open(f'results.pickle', "rb"))
 
 particle = {}
 rmse_dict = {}
