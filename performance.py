@@ -2,17 +2,19 @@ import pickle
 import numpy as np
 from itertools import product
 from matplotlib import pyplot as plt
+from particler_filter_pytorch import stratified_resample, residual_resample, systematic_resample
 
 measurement_sigmas = list(np.sqrt(np.linspace(0.02, 5, 10)))
 Ns = [50, 100,500,1000, 5000, 10000]
-resample_funcs = ["stratified_resample", "residual_resample", "systematic_resample"]
+resample_funcs = [stratified_resample, residual_resample, systematic_resample]
+resample_funcs_names = ["stratified_resample", "residual_resample", "systematic_resample"]
 process_noise = [np.sqrt(0.75)]
-trials = list(product(measurement_sigmas, process_noise, Ns, list(range(1000))))
-performance_to_sigma = pickle.load(open(f'results_low_particle.pickle', "rb"))
+trials = list(product(measurement_sigmas, process_noise, Ns, resample_funcs, list(range(1000))))
+performance_to_sigma = pickle.load(open(f'results_low_particle_resamplings.pickle', "rb"))
 
 rmse_dict = {}
 ind_mse_dict = {}
-for func in resample_funcs:
+for func in resample_funcs_names:
     plt.figure()
     for particle_s in Ns:
         rmse_dict = {}
@@ -42,3 +44,4 @@ for func in resample_funcs:
         plt.xlabel("Measurement Error")
         plt.ylabel("RMSE")
     plt.show()
+    plt.pause(0.0001)
