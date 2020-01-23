@@ -22,15 +22,11 @@ for func in resample_funcs_names:
         for sigma in measurement_sigmas:
             rmse_dict["{0:.2f}".format(sigma)] = []
             ind_mse_dict["{0:.2f}".format(sigma)] = []
-
-
         for i,each_try in enumerate(performance_to_sigma):
             if each_try != [] and particle_s == trials[i][2]:
                 if func == trials[i][3].__name__:
-                # temp_particle = particle[trials[i][2]]
                     rmse_dict["{0:.2f}".format(trials[i][0])].append(performance_to_sigma[i][0][0])
                     ind_mse_dict["{0:.2f}".format(trials[i][0])].append(performance_to_sigma[i][0][1])
-            # particle[trials[i][2]] = temp_particle
 
         y = []
         x = []

@@ -1,6 +1,5 @@
 import torch #1.3.1
 import numpy as np
-from matplotlib import pyplot as plt
 from tqdm import tqdm
 import pickle
 
@@ -28,14 +27,15 @@ def generate_a_target(measurement_sigma, process_noise, ts):
     car_traj = [np.concatenate((initial_positions, dx, dy), axis=None)]
     bearings = [bearing(0,aci(car_traj[0],0),time_array[0])]
     for i in range(1,len(time_array)):
-        car_traj.append((np.matmul(A(time_array[i]-time_array[i-1]),car_traj[-1].T).T + np.matmul(B(time_array[i]-time_array[i-1]), np.random.normal(0, process_noise, (2,1))).T * process_noise)[0])
+        car_traj.append((np.matmul(A(time_array[i]-time_array[i-1]),car_traj[-1].T).T +
+                         np.matmul(B(time_array[i]-time_array[i-1]), np.random.normal(0, process_noise, (2,1))).T * process_noise)[0])
     coordinates = np.array(car_traj)[:,0:2]
     for i in range(1,len(car_traj)):
         a = np.random.choice([False,True], p = [0.5,0.5])
         if a:
             bearings.append(bearing(0,aci(car_traj[i],0) + torch.empty(1).normal_(mean=0,std=measurement_sigma),time_array[i]))
         else:
-            bearings.append(bearing(1,aci(car_traj[i],1) + torch.empty(1).normal_(mean=0,std=measurement_sigma),time_array[i])) 
+            bearings.append(bearing(1,aci(car_traj[i],1) + torch.empty(1).normal_(mean=0,std=measurement_sigma),time_array[i]))
     return car_traj, bearings, coordinates
 
 def residual_resample(weights):
@@ -156,7 +156,7 @@ def systematic_resample(weights):
     return indexes
 def update(particles, weights, bearing, sigma, h_func):
     v = bearing.bearing - h_func(particles,bearing)
-    v[(v < -170) * (v > -190)] += 180 
+    v[(v < -170) * (v > -190)] += 180
     v[(v < -350) * (v > -370)] += 360
     v[(v < 190) * (v > 170)] -= 180
     v[(v < 370) * (v > 350)] -= 360
@@ -203,7 +203,6 @@ def one_target(particles, weights, bearings, process_noise, measurement_sigma, h
         mean, var = estimate(particles, weights)
         takip.append(mean)
         old_time = bearing.time
-    
     return torch.stack(takip)
 def performance(takip, car_traj):
     ind_error = (takip - torch.Tensor(car_traj))[:,:2]
@@ -215,11 +214,11 @@ import multiprocessing
 from itertools import product
 
 
-def parallel_helper(measurement_sigma, process_noise, N,dummy):
+def parallel_helper(measurement_sigma, process_noise, N, dummy):
     global sensor_locations
     try:
         ts = 1 / 2
-        car_traj, bearings, coordinates = generate_a_target(measurement_sigma, process_noise, ts)
+        car_traj, bearings, _ = generate_a_target(measurement_sigma, process_noise, ts)
         h = lambda particles, bearing: 90 - (torch.atan2(particles[:, 1] - bearing.sensor_location[1],
                                                          particles[:, 0] - bearing.sensor_location[0]) * 57.295779513)
         initial_state = torch.Tensor(car_traj[0])
@@ -236,7 +235,6 @@ def parallel_helper(measurement_sigma, process_noise, N,dummy):
 
 
 def main():
-    global sensor_locations
     sensor_locations = np.array([[0, 0], [15000, 15000]])
     measurement_sigmas = list(np.sqrt(np.linspace(0.02, 5, 10)))
     Ns = [50, 100,500,1000, 5000, 10000]
