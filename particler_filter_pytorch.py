@@ -237,8 +237,11 @@ def parallel_helper(measurement_sigma, process_noise, N, dummy):
 def main():
     sensor_locations = np.array([[0, 0], [15000, 15000]])
     measurement_sigmas = list(np.sqrt(np.linspace(0.02, 5, 10)))
-    Ns = [50, 100,500,1000, 5000, 10000]
+    Ns = [500]
     process_noise = [np.sqrt(0.75)]
+
+
+
     with multiprocessing.Pool() as pool:
         results = pool.starmap(parallel_helper, product(measurement_sigmas, process_noise, Ns, list(range(1000))))
     with open(f'results_low_particle.pickle', 'wb') as handle:
